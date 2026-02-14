@@ -2,8 +2,7 @@ import requests
 import json
 
 def emotion_detector(text_to_analyse):
-    # Check for blank entries locally before sending request (optimization)
-    # However, the requirement specifically asks to use the status_code from the server response.
+    # Check for blank entries locally before sending request
 
     url = 'https://sn-watson-emotion.labs.skills.network/v1/watson.runtime.nlp.v1/NlpService/EmotionPredict'
     headers = {"grpc-metadata-mm-model-id": "emotion_aggregated-workflow_lang_en_stock"}
@@ -11,7 +10,7 @@ def emotion_detector(text_to_analyse):
 
     response = requests.post(url, json=input_json, headers=headers)
 
-    # Handle status code 400 (Bad Request / Blank Entry)
+    # Handle status code 400 (Bad Request)
     if response.status_code == 400:
         return {
             'anger': None,
@@ -22,7 +21,7 @@ def emotion_detector(text_to_analyse):
             'dominant_emotion': None
         }
 
-    # If successful (status code 200)
+    # If success (status code 200)
     elif response.status_code == 200:
         formatted_response = json.loads(response.text)
 
@@ -52,7 +51,7 @@ def emotion_detector(text_to_analyse):
             'dominant_emotion': dominant_emotion
         }
 
-    # Fallback for other potential errors (optional but good practice)
+    # Fallback for other errors
     else:
         return {
             'anger': None,

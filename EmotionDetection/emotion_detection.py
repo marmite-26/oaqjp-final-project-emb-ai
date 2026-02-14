@@ -58,3 +58,4 @@ def emotion_detector(text_to_analyse):
             'disgust': None,
             'fear': None,
             'joy': None
+            }

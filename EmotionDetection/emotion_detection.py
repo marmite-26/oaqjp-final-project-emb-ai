@@ -2,42 +2,60 @@ import requests
 import json
 
 def emotion_detector(text_to_analyse):
+    # Check for blank entries locally before sending request (optimization)
+    # However, the requirement specifically asks to use the status_code from the server response.
+
     url = 'https://sn-watson-emotion.labs.skills.network/v1/watson.runtime.nlp.v1/NlpService/EmotionPredict'
     headers = {"grpc-metadata-mm-model-id": "emotion_aggregated-workflow_lang_en_stock"}
     input_json = { "raw_document": { "text": text_to_analyse } }
 
     response = requests.post(url, json=input_json, headers=headers)
 
-    # Convert response text to dictionary
-    formatted_response = json.loads(response.text)
+    # Handle status code 400 (Bad Request / Blank Entry)
+    if response.status_code == 400:
+        return {
+            'anger': None,
+            'disgust': None,
+            'fear': None,
+            'joy': None,
+            'sadness': None,
+            'dominant_emotion': None
+        }
 
-    # Extract the emotion scores
-    emotions = formatted_response['emotionPredictions'][0]['emotion']
+    # If successful (status code 200)
+    elif response.status_code == 200:
+        formatted_response = json.loads(response.text)
 
-    anger_score = emotions['anger']
-    disgust_score = emotions['disgust']
-    fear_score = emotions['fear']
-    joy_score = emotions['joy']
-    sadness_score = emotions['sadness']
+        emotions = formatted_response['emotionPredictions'][0]['emotion']
+        anger_score = emotions['anger']
+        disgust_score = emotions['disgust']
+        fear_score = emotions['fear']
+        joy_score = emotions['joy']
+        sadness_score = emotions['sadness']
 
-    # Determine the dominant emotion
-    all_scores = {
-        'anger': anger_score,
-        'disgust': disgust_score,
-        'fear': fear_score,
-        'joy': joy_score,
-        'sadness': sadness_score
-    }
+        all_scores = {
+            'anger': anger_score,
+            'disgust': disgust_score,
+            'fear': fear_score,
+            'joy': joy_score,
+            'sadness': sadness_score
+        }
 
-    # Use max() with key argument to find the key with the highest value
-    dominant_emotion = max(all_scores, key=all_scores.get)
+        dominant_emotion = max(all_scores, key=all_scores.get)
 
-    # Return the formatted dictionary
-    return {
-        'anger': anger_score,
-        'disgust': disgust_score,
-        'fear': fear_score,
-        'joy': joy_score,
-        'sadness': sadness_score,
-        'dominant_emotion': dominant_emotion
-    }
+        return {
+            'anger': anger_score,
+            'disgust': disgust_score,
+            'fear': fear_score,
+            'joy': joy_score,
+            'sadness': sadness_score,
+            'dominant_emotion': dominant_emotion
+        }
+
+    # Fallback for other potential errors (optional but good practice)
+    else:
+        return {
+            'anger': None,
+            'disgust': None,
+            'fear': None,
+            'joy': None
